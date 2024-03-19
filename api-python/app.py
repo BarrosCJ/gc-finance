@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS, cross_origin
 from datetime import datetime
 import mysql.connector
@@ -40,15 +40,15 @@ def add_transaction():
 
 # Campo para deletar transação
 
-@app.route('/transactions/<int:id>', methods=['DELETE'])
-def delete_transaction(id):
-    cursor = db.cursor()
+# @app.route('/transactions/<int:id>', methods=['DELETE'])
+# def delete_transaction(id):
+#     cursor = db.cursor()
     
-    # Deletar a transação do banco de dados
-    cursor.execute("DELETE FROM transacoes WHERE id = %s", (id,))
-    db.commit()
+#     # Deletar a transação do banco de dados
+#     cursor.execute("DELETE FROM transacoes WHERE id = %s", (id,))
+#     db.commit()
     
-    return jsonify({"mensagem": "Transação deletada com sucesso"}), 200
+#     return jsonify({"mensagem": "Transação deletada com sucesso"}), 200
 
 @app.route('/transactions', methods=['GET'])
 def get_transactions():
@@ -64,38 +64,46 @@ def get_transactions():
     return jsonify(transactions)
 
 # Cadastro do Cliente
-@app.route('/clientes', methods=['POST'])
-def cadastrarCliente():
+clientes = []
+
+@app.route('/cadastro_clientes', methods=['POST'])
+def cadastrar_cliente():
     conn = connect_db()
     cursor = conn.cursor()
     
     data = request.get_json()
-    nome = data['nome'],
-    cpf = data['cpf'],
-    email = data['email'],
-    telefone = data['telefone'],
-    senha = data['senha']
+    nome = data.get('nome')
+    email = data.get('email')
+    telefone = data.get('telefone')
+    cpf = data.get('cpf')
+    senha = data.get('senha')
+
+    if not nome or not email or not telefone or not cpf or not senha:
+        return jsonify({'erro': 'Todos os campos são obrigatórios'}), 400
+
+    for cliente in clientes:
+        if cliente['cpf'] == cpf:
+            return jsonify({'erro': 'CPF já cadastrado'}), 400
     
-    cursor.execute('INSERT INTO Clientes (nome, cpf, email, telefone, senha) VALUES (%s, %s, %s, %s, %s)', (nome, cpf, email, telefone, senha))
+    cursor.execute('INSERT INTO cadastro_clientes (nome, email, telefone, cpf, senha) VALUES (%s, %s, %s, %s, %s)', (nome, email, telefone, cpf, senha))
+    
     conn.commit()
     conn.close()
 
-    return jsonify({'message': 'Cadastro adicionado com sucesso'}), 201
+    return jsonify({'mensagem': 'Cliente cadastrado com sucesso'}), 201
 
-@app.route('/Cliente', methods=['GET'])
+@app.route('/cadastro_clientes', methods=['GET'])
 def get_cadastro():
     conn = connect_db()
     cursor = conn.cursor(dictionary=True)
 
     # Selecionar todas os cadastros
-    cursor.execute('SELECT * FROM Clientes')
-    Clientes = cursor.fetchall()
+    cursor.execute('SELECT * FROM cadastro_clientes')
+    clientes = cursor.fetchall()
 
     conn.close()
 
-    return jsonify({'cliente': Clientes})
-    
+    return jsonify(clientes)
 
-        
 if __name__ == '__main__':
     app.run(debug=True, port=1414)
