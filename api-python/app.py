@@ -40,15 +40,15 @@ def add_transaction():
 
 # Campo para deletar transação
 
-# @app.route('/transactions/<int:id>', methods=['DELETE'])
-# def delete_transaction(id):
-#     cursor = db.cursor()
+@app.route('/transactions/<int:id>', methods=['DELETE'])
+def delete_transaction(id):
+    cursor = db.cursor()
     
-#     # Deletar a transação do banco de dados
-#     cursor.execute("DELETE FROM transacoes WHERE id = %s", (id,))
-#     db.commit()
+    # Deletar a transação do banco de dados
+    cursor.execute("DELETE FROM transacoes WHERE id = %s", (id,))
+    db.commit()
     
-#     return jsonify({"mensagem": "Transação deletada com sucesso"}), 200
+    return jsonify({"mensagem": "Transação deletada com sucesso"}), 200
 
 @app.route('/transactions', methods=['GET'])
 def get_transactions():
