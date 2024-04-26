@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, session
 from flask_cors import CORS, cross_origin
 from datetime import datetime
 import mysql.connector
@@ -7,7 +7,8 @@ import mysql.connector
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-
+app.secret_key = "#12345#"
+        
 def connect_db():
     return mysql.connector.connect(
         host='localhost',
@@ -104,6 +105,40 @@ def get_cadastro():
     conn.close()
 
     return jsonify(clientes)
+
+#Login
+users = []
+
+@app.route('/users', methods=['GET'])
+def get_users():
+    return jsonify(users)
+
+@app.route('/login', methods=['POST'])
+def login():
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    data = request.get_json()
+    email = data.get('email')
+    senha = data.get('senha')
+    
+    # Verifique se o CPF e a senha correspondem a um registro na tabela de clientes
+    query = "SELECT * FROM cadastro_clientes WHERE email = %s AND senha = %s"
+    cursor.execute(query, (email, senha))
+    cliente = cursor.fetchall()
+    
+    if not cliente: 
+        return jsonify({'error': 'Missing username or email'}), 500
+    
+    if cliente:
+        # Autenticação bem-sucedida
+        # Você pode armazenar informações de autenticação na sessão se desejar
+        session['client_name'] = cliente[0][1]
+        
+    return jsonify({'user': {
+        'nome': cliente[0][1],
+        'cpf': cliente[0][4]
+    }}), 200       
 
 if __name__ == '__main__':
     app.run(debug=True, port=1414)

@@ -12,11 +12,16 @@ interface Transaction {
 }
 
 interface User {
-  nome: string,
-  email: string,
-  telefone: string,
-  cpf: string,
-  senha: string,
+  nome?: string,
+  email?: string,
+  telefone?: string,
+  cpf?: string,
+  senha?: string,
+}
+
+interface LonginInput {
+  email: string
+  senha: string
 }
 
 interface CreateTransactionInput {
@@ -40,6 +45,7 @@ interface TransactionContextType {
   fetchTransactions: (query?: string) => Promise<void>
   createTransaction: (data: CreateTransactionInput) => Promise<void>
   createUser: (data: CreateUserInput) => Promise<void>
+  loginUser: (data: LonginInput) => Promise<void>
 }
 
 interface TransactionsProviderProps {
@@ -83,6 +89,19 @@ export function TransactionsProvider({ children }: TransactionsProviderProps) {
         nome, email, telefone, cpf, senha
       })
 
+      setUser(response.data.user)
+    },
+    [],
+  )
+
+  const loginUser = useCallback(
+    async (data: LonginInput) => {
+      const {email, senha} = data
+
+      const response = await api.post("login", {
+        email, senha
+      })
+
       setUser(response.data)
     },
     [],
@@ -100,6 +119,7 @@ export function TransactionsProvider({ children }: TransactionsProviderProps) {
         fetchTransactions,
         createTransaction,
         createUser,
+        loginUser
       }}
     >
       {children}
